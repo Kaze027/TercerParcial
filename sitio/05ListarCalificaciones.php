@@ -75,7 +75,7 @@
                 <input type="text" class="form-control" value="" id="calificacion" min="1" max="10">
             </div>
             <div class="col-sm-1">
-                <a class="btn btn-primary btn-sm" onclick="setDatosEvaluacion()">EVALUAR</a>
+                <a class="btn btn-primary btn-sm" onclick="setEvaluaciones()">EVALUAR</a>
             </div>
         </div>
 

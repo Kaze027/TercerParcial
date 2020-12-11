@@ -6,7 +6,7 @@ var LIST_URL = '03ListarAlumnos.html';
 
 var nRow = 1;
 var celdas = ["matricula", "nombre", "curp", "email", "sexo", "ciudad", "detalle"];
-var celdasCalif = ["nombre", "clave", "calificacion", "detalle"];
+var celdasEval = ["nombre", "clave", "calificacion", "detalle"];
 
 let campos = [
     { campo: 'clave_alu', tipo: 'text' },
@@ -182,52 +182,52 @@ function listarAlumnos(idT) {
                         for (i = 0; i < celdas.length; i++) {
                             var celda = renglon.insertCell(i);
                             if (celdas[i] == "matricula") {
-                                var textoCelda = document.createTextNode(alumno.clave_alu);
+                                var txtCeldas = document.createTextNode(alumno.clave_alu);
                             } else {
                                 switch (celdas[i]) {
                                     case "nombre":
-                                        var textoCelda = document.createTextNode(alumno.nombre + " " + alumno.ap_paterno + " " + alumno.ap_materno);
+                                        var txtCeldas = document.createTextNode(alumno.nombre + " " + alumno.ap_paterno + " " + alumno.ap_materno);
                                         break;
                                     case "curp":
-                                        var textoCelda = document.createTextNode(alumno.curp);
+                                        var txtCeldas = document.createTextNode(alumno.curp);
                                         break;
                                     case "email":
-                                        var textoCelda = document.createTextNode(alumno.email);
+                                        var txtCeldas = document.createTextNode(alumno.email);
                                         break;
                                     case "sexo":
-                                        var textoCelda = document.createTextNode(alumno.sexo);
+                                        var txtCeldas = document.createTextNode(alumno.sexo);
                                         break;
                                     case "ciudad":
-                                        var textoCelda = document.createTextNode(alumno.ciudad);
+                                        var txtCeldas = document.createTextNode(alumno.ciudad);
                                         break;
                                     case "detalle":
-                                        var textoCelda = document.createElement('div');
-                                        textoCelda.classList.add('bd-example');
+                                        var txtCeldas = document.createElement('div');
+                                        txtCeldas.classList.add('bd-example');
 
-                                        var btnVer = document.createElement('a');
-                                        btnVer.classList.add('btn', 'btn-primary', 'btn-sm');
-                                        btnVer.textContent = 'Detalle';
-                                        btnVer.href = "04DetalleAlumnos.html" + "?acc=ver&matricula=" + alumno.clave_alu;
+                                        var btnDetalle = document.createElement('a');
+                                        btnDetalle.classList.add('btn', 'btn-primary', 'btn-sm');
+                                        btnDetalle.txtContent = 'Detalle';
+                                        btnDetalle.href = "04DetalleAlumnos.html" + "?acc=ver&matricula=" + alumno.clave_alu;
 
                                         var btnEdit = document.createElement('a');
                                         btnEdit.classList.add('btn', 'btn-success', 'btn-sm');
-                                        btnEdit.textContent = 'Modificar';
+                                        btnEdit.txtContent = 'Modificar';
                                         btnEdit.href = "04DetalleAlumnos.html" + "?acc=edit&matricula=" + alumno.clave_alu;
 
                                         var btnCalif = document.createElement('a');
                                         btnCalif.classList.add('btn', 'btn-warning', 'btn-sm');
-                                        btnCalif.textContent = 'Evaluaciones';
+                                        btnCalif.txtContent = 'Evaluaciones';
                                         btnCalif.href = "05ListarCalificaciones.php" + "?matricula=" + alumno.clave_alu;
 
-                                        textoCelda.appendChild(btnVer);
-                                        textoCelda.appendChild(btnEdit);
-                                        textoCelda.appendChild(btnCalif);
+                                        txtCeldas.appendChild(btnDetalle);
+                                        txtCeldas.appendChild(btnEdit);
+                                        txtCeldas.appendChild(btnCalif);
 
                                         break;
                                 }
                             }
 
-                            celda.appendChild(textoCelda);
+                            celda.appendChild(txtCeldas);
                         }
                         nRow++;
                     });
@@ -255,17 +255,6 @@ function crearFormularioAlumno(contenedor) {
             C.classList.add('form-control');
             form.appendChild(C);
         }
-
-        var s = document.createElement("input");
-        s.setAttribute("id", "btnR");
-        s.setAttribute("value", "Regresar");
-        s.addEventListener("click", (function(sId) {
-            return function() {
-                window.location.assign(LIST_URL);
-            }
-        })("btnR"), false);
-        s.classList.add('btn', 'btn-primary', 'btn-lg', 'btn-block');
-        form.appendChild(s);
 
         if (acc == "edit" || acc == "insert") {
             var s = document.createElement("input");
@@ -380,7 +369,81 @@ function setDatosAlumnos(usmethod) {
     }
 }
 
-function setDatosEvaluacion() {
+/* Obtener calificaciones */
+function listarCalificaciones(idT) {
+    if (checkCookie(COOKIE_NAME)) {
+        var matricula = getQueryVariable("matricula");
+        nRow = 1;
+        var tabla = document.getElementById(idT);
+        var ck = getCookie("tk");
+
+        while (tabla.rows.length > 1) {
+            tabla.deleteRow(1);
+        }
+
+        var endPoint = REST_URL + "evaluaciones/" + matricula;
+        var cok = getCookie(COOKIE_NAME);
+        endPoint = endPoint + "?token=" + cok;
+        var requestOptions = {
+            method: 'GET',
+            redirect: 'follow'
+        };
+        fetch(endPoint, requestOptions)
+            .then(response => response.json())
+            .then(
+                data => {
+                    data.data.forEach(calificacion => {
+                        var renglon = tabla.insertRow(nRow);
+                        for (i = 0; i < celdasEval.length; i++) {
+                            var celda = renglon.insertCell(i);
+                            if (celdasEval[i] == "nombre") {
+                                var txtCeldas = document.createTextNode(calificacion.nombre);
+                            } else {
+                                switch (celdasEval[i]) {
+                                    case "clave":
+                                        var txtCeldas = document.createTextNode(calificacion.clave_mat);
+                                        break;
+                                    case "calificacion":
+                                        var txtCeldas = document.createTextNode(calificacion.calificacion);
+                                        break;
+                                    case "detalle":
+                                        var txtCeldas = document.createElement('div');
+                                        txtCeldas.classList.add('bd-example');
+
+                                        var btnEdit = document.createElement('a');
+                                        btnEdit.classList.add('btn', 'btn-warning', 'btn-sm');
+                                        btnEdit.txtContent = 'EDITAR';
+                                        btnEdit.onclick = function() {
+                                            actEvaluaciones(calificacion.id, calificacion.clave_mat);
+                                        };
+
+                                        var btnDel = document.createElement('a');
+                                        btnDel.classList.add('btn', 'btn-danger', 'btn-sm');
+                                        btnDel.txtContent = 'BORRAR';
+                                        btnDel.onclick = function() {
+                                            delEvaluaciones(calificacion.id);
+                                        };
+
+                                        txtCeldas.appendChild(btnEdit);
+                                        txtCeldas.appendChild(btnDel);
+
+                                        break;
+                                }
+                            }
+
+                            celda.appendChild(txtCeldas);
+                        }
+                        nRow++;
+                    });
+                }
+            )
+            .catch(error => console.log('error', error))
+    } else {
+        window.location.assign(HOME_URL);
+    }
+}
+/* Insertar calificacion */
+function setEvaluaciones() {
     const valores = window.location.search;
     const urlParams = new URLSearchParams(valores);
     var usmethod = "POST";
@@ -431,8 +494,8 @@ function setDatosEvaluacion() {
 
 
 }
-//funcion para actualizar calificacion
-function actualizaEvaluacion(id, materia) {
+//Actualizar calificacion
+function actEvaluaciones(id, materia) {
     const valores = window.location.search;
     const urlParams = new URLSearchParams(valores);
     var usmethod = "PUT";
@@ -472,85 +535,8 @@ function actualizaEvaluacion(id, materia) {
         window.location.assign(HOME_URL);
     }
 }
-
-function listarCalificaciones(idT) {
-    if (checkCookie(COOKIE_NAME)) {
-        var matricula = getQueryVariable("matricula");
-        nRow = 1;
-        var tabla = document.getElementById(idT);
-
-        var ck = getCookie("tk");
-
-        //alert(ck);
-
-        while (tabla.rows.length > 1) {
-            tabla.deleteRow(1);
-        }
-
-        var endPoint = REST_URL + "evaluaciones/" + matricula;
-
-        var cok = getCookie(COOKIE_NAME);
-        endPoint = endPoint + "?token=" + cok;
-        var requestOptions = {
-            method: 'GET',
-            redirect: 'follow'
-        };
-        fetch(endPoint, requestOptions)
-            .then(response => response.json())
-            .then(
-                data => {
-                    data.data.forEach(calificacion => {
-                        var renglon = tabla.insertRow(nRow);
-                        for (i = 0; i < celdasCalif.length; i++) {
-                            var celda = renglon.insertCell(i);
-                            if (celdasCalif[i] == "nombre") {
-                                var textoCelda = document.createTextNode(calificacion.nombre);
-                            } else {
-                                switch (celdasCalif[i]) {
-                                    case "clave":
-                                        var textoCelda = document.createTextNode(calificacion.clave_mat);
-                                        break;
-                                    case "calificacion":
-                                        var textoCelda = document.createTextNode(calificacion.calificacion);
-                                        break;
-                                    case "detalle":
-                                        var textoCelda = document.createElement('div');
-                                        textoCelda.classList.add('bd-example');
-
-                                        var btnEdit = document.createElement('a');
-                                        btnEdit.classList.add('btn', 'btn-warning', 'btn-sm');
-                                        btnEdit.textContent = 'EDITAR';
-                                        btnEdit.onclick = function() {
-                                            actualizaEvaluacion(calificacion.id, calificacion.clave_mat);
-                                        };
-
-                                        var btnDel = document.createElement('a');
-                                        btnDel.classList.add('btn', 'btn-danger', 'btn-sm');
-                                        btnDel.textContent = 'BORRAR';
-                                        btnDel.onclick = function() {
-                                            borrarEvaluacion(calificacion.id);
-                                        };
-
-                                        textoCelda.appendChild(btnEdit);
-                                        textoCelda.appendChild(btnDel);
-
-                                        break;
-                                }
-                            }
-
-                            celda.appendChild(textoCelda);
-                        }
-                        nRow++;
-                    });
-                }
-            )
-            .catch(error => console.log('error', error))
-    } else {
-        window.location.assign(HOME_URL);
-    }
-}
-
-function borrarEvaluacion(idC) {
+/* Borrar calificaciones */
+function delEvaluaciones(idC) {
     if (checkCookie(COOKIE_NAME)) {
         var endPoint = REST_URL + "calificacion/" + idC;
 
@@ -573,7 +559,6 @@ function borrarEvaluacion(idC) {
             .then(response => response.text())
             .then(result => window.location = window.location.href)
             .catch(error => console.log('error', error));
-
 
     } else {
         window.location.assign(HOME_URL);

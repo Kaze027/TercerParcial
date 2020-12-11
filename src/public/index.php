@@ -1,4 +1,5 @@
 <?php
+header("Access-Control-Allow-Origin: *");
 ini_set('display_errors',1);
 error_reporting(E_ALL);
 
@@ -153,8 +154,8 @@ $app->post('/registro', function (Request $request, Response $response, array $a
             $sql = "INSERT INTO {$db}.usuarios SET nombres=:nombres, ap_paterno=:ap_paterno,
             ap_materno=:ap_materno, usuario=:usuario, password=:password, email=:email, 
             tipo_usuario_id=:tipo_usuario_id, estado_id=:estado_id, dependencia_id=:dependencia_id,
-            codigo_verificacion=:codigo_verificacion, token=:token, 
-            token_expira=:token_expira, status=:status, created_at=:created_at, updated_at=:updated_at ";
+            codigo_verificacion=:codigo_verificacion, token=:token, token_expira=:token_expira, 
+            status=:status, created_at=:created_at, updated_at=:updated_at ";
             $st = $conn->prepare($sql);
             $st->execute($d);
             $error = $conn->errorInfo();
@@ -186,6 +187,8 @@ $app->post('/registro', function (Request $request, Response $response, array $a
 });
 
 
+
+
 $app->get('/alumnos', function (Request $request, Response $response, array $args) {
     
     $conn = $this->db;
@@ -197,8 +200,6 @@ $app->get('/alumnos', function (Request $request, Response $response, array $arg
     if(!isset($arrJ['token'])){ $arrJ['token'] = ""; }
     $token = $arrJ['token'];
     $arr = array();
-    
-    // $token = "b8ac21e97877242580c70708a60c308b5f55747ae180885277a218d1d7d36d7f";
 
     if(!empty($token)){
         $arrT = validaToken($token, $db, $conn);
@@ -322,8 +323,8 @@ $app->post('/alumnos', function (Request $request, Response $response, array $ar
                 }else{
                     $arr = array("errors"=> array("code"=>221, "detail" => $arr_empty));
                     $status_http = 401;
-                } #if($validos)
-            } #if(count($arrAlu)
+                }
+            }
         }else{
             $arr = array("errors"=> array("code"=>401, "detail" => "Token invalido"));
             $status_http = 401;
@@ -393,7 +394,7 @@ $app->put('/alumnos/{matricula}', function (Request $request, Response $response
                     $error = $conn->errorInfo();
                     if(intval($error[0]) != 0){
                         $arr = array('errors' => array("code" => "230", 
-                        "detail"=>"Error al editar Alumno, {$error[2]}"));
+                        "detail"=>"No es posible editar el campo Alumno, {$error[2]}"));
                         $status_http = 401;
                     }else{
                         $arr = array('success' => true, "detail"=>"Alumno editado correctamente");
@@ -401,8 +402,8 @@ $app->put('/alumnos/{matricula}', function (Request $request, Response $response
                 }else{
                     $arr = array("errors"=> array("code"=>221, "detail" => $arr_empty));
                     $status_http = 401;
-                } #if($validos)
-            } #if(count($arrAlu)
+                }
+            }
         }else{
             $arr = array("errors"=> array("code"=>401, "detail" => "Token invalido"));
             $status_http = 401;
@@ -460,7 +461,7 @@ $app->delete('/alumnos/{matricula}', function (Request $request, Response $respo
                     $arr = array('success' => true, "detail"=>"Alumno eliminado correctamente");
                 }
                 
-            } #if(count($arrAlu)
+            }
         }else{
             $arr = array("errors"=> array("code"=>401, "detail" => "Token invalido"));
             $status_http = 401;
@@ -482,7 +483,6 @@ $app->delete('/alumnos/{matricula}', function (Request $request, Response $respo
     }
 });
 
-/* GET Evaluaciones */
 $app->get('/evaluaciones', function (Request $request, Response $response, array $args) {
     
     $conn = $this->db;
@@ -494,17 +494,19 @@ $app->get('/evaluaciones', function (Request $request, Response $response, array
     if(!isset($arrJ['token'])){ $arrJ['token'] = ""; }
     $token = $arrJ['token'];
     $arr = array();
-    
+
     if(!empty($token)){
         $arrT = validaToken($token, $db, $conn);
         if($arrT['valido']){
-            $sql = "SELECT CONCAT(a.nombre,' ', a.ap_paterno,' ', a.ap_materno) as 'alumno',
+            $sql = "SELECT
+            CONCAT(a.nombre,' ', a.ap_paterno,' ', a.ap_materno) as 'alumno',
             m.clave_mat, m.nombre, ev.calificacion, ev.id
         FROM
             evaluaciones ev
-            INNER JOIN alumnos a ON ev.clave_alu = a.clave_alu
+            inner JOIN alumnos a ON ev.clave_alu = a.clave_alu
             INNER JOIN materias m ON ev.clave_mat = m.clave_mat
-        ORDER BY a.clave_alu ";
+        ORDER BY
+            a.clave_alu ";
             $arrAlu = query($sql, $conn);
             $arr['sucess'] = true;
             $arr['data'] = $arrAlu;
@@ -529,8 +531,7 @@ $app->get('/evaluaciones', function (Request $request, Response $response, array
     }
 });
 
-/* POST insertar calificaciones */
-$app->post('/insertarEvaluacion', function (Request $request, Response $response, array $args) {
+$app->post('/registraEvaluacion', function (Request $request, Response $response, array $args) {
     $conn = $this->db;
     $db = $GLOBALS['db'];
 
@@ -540,7 +541,8 @@ $app->post('/insertarEvaluacion', function (Request $request, Response $response
 
     if(!empty($us = $arrJ['usuario']) && !empty($us = $arrJ['email'])){
         $sql = "SELECT id, usuario, password, email, tipo_usuario_id, status 
-        FROM {$db}.usuarios WHERE usuario = '{$arrJ['usuario']}' OR email = '{$arrJ['email']}'";
+        FROM {$db}.usuarios 
+        WHERE usuario = '{$arrJ['usuario']}' OR email = '{$arrJ['email']}'";
         $arr = query($sql, $conn);
         if(count($arr) < 1){
             $factual = strtotime(date('Y-m-d H:i:s', time()));
@@ -566,8 +568,8 @@ $app->post('/insertarEvaluacion', function (Request $request, Response $response
             $sql = "INSERT INTO {$db}.usuarios SET nombres=:nombres, ap_paterno=:ap_paterno,
             ap_materno=:ap_materno, usuario=:usuario, password=:password, email=:email, 
             tipo_usuario_id=:tipo_usuario_id, estado_id=:estado_id, dependencia_id=:dependencia_id,
-            codigo_verificacion=:codigo_verificacion, token=:token, 
-            token_expira=:token_expira, status=:status, created_at=:created_at, updated_at=:updated_at ";
+            codigo_verificacion=:codigo_verificacion, token=:token, token_expira=:token_expira, 
+            status=:status, created_at=:created_at, updated_at=:updated_at ";
             $st = $conn->prepare($sql);
             $st->execute($d);
             $error = $conn->errorInfo();
@@ -598,6 +600,64 @@ $app->post('/insertarEvaluacion', function (Request $request, Response $response
     }
 });
 
+$app->delete('/calificacion/{id}', function (Request $request, Response $response, array $args) {
+    
+    $conn = $this->db;
+    $db = $GLOBALS['db'];
+    $status_http = 200;
 
+    $id = $args['id'];
+    $data = $request->getParsedBody();
+    $arrJ = str_replace("'", "\"", $data);
+    if(!isset($arrJ['token'])){ $arrJ['token'] = ""; }
+    $token = $arrJ['token'];
+    $arr = array();
+
+    if(!empty($token)){
+        $arrT = validaToken($token, $db, $conn);
+        if($arrT['valido']){
+            $sql = "SELECT * FROM {$db}.evaluaciones WHERE id = '{$id}'";
+            $arrAlu = query($sql, $conn);
+            if(count($arrAlu)!= 1){
+                $arr = array("errors"=> array("code"=>230, "detail" => "id no existe"));
+                $status_http = 401;
+            }else{
+                $d = array();
+                $d['id'] = $id;
+                $sql = "DELETE FROM  {$db}.evaluaciones WHERE id=:id ";
+                echo($sql);
+                
+                $st = $conn->prepare($sql);
+                $st->execute($d);
+                $error = $conn->errorInfo();
+                if(intval($error[0]) != 0){
+                    $arr = array('errors' => array("code" => "230", 
+                    "detail"=>"Error al eliminar Calificacion, {$error[2]}"));
+                    $status_http = 401;
+                }else{
+                    $arr = array('success' => true, "detail"=>"Calificacion eliminada correctamente");
+                }
+                
+            }
+        }else{
+            $arr = array("errors"=> array("code"=>401, "detail" => "Token invalido"));
+            $status_http = 401;
+        }
+        
+        $response->getBody()->write(json_encode($arr,JSON_UNESCAPED_UNICODE));
+        $newResponse = $response->withHeader(
+            'Content-Type', 'application/json; charset=UTF-8'
+        );
+
+        if($status_http != 200){
+            $newResponse = $response->withStatus($status_http)
+            ->withHeader(
+                'Content-Type', 'application/json; charset=UTF-8'
+            );
+        }
+
+        return $newResponse;
+    }
+});
 
 $app->run();
